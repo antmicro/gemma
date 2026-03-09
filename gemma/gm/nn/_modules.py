@@ -214,28 +214,13 @@ class Attention(nn.Module):
       end_index = cache['end_index'][0]
       cache_size = cache['v'].shape[1]
       update_index = end_index % cache_size
-      slice_indices = (0, update_index, 0, 0)
 
       # [batch_size, cache_size, num_heads, head_dim]
-      value_proj = jax.lax.dynamic_update_slice(
-          cache['v'],
-          value_proj,
-          slice_indices,
-      )
-
+      value_proj = cache['v'].at[0, update_index, 0, :].set(value_proj[0, 0, 0])
       # [batch_size, cache_size, num_heads, head_dim]
-      key_proj = jax.lax.dynamic_update_slice(
-          cache['k'],
-          key_proj,
-          slice_indices,
-      )
-
+      key_proj = cache['k'].at[0, update_index, 0, :].set(key_proj[0, 0, 0])
       # [batch_size, cache_size]
-      cache_positions = jax.lax.dynamic_update_slice(
-          cache['positions'],
-          segment_pos,
-          slice_indices[:2],
-      )
+      cache_positions = cache['positions'].at[0, update_index].set(segment_pos[0, 0])
 
     if self.use_gqa:
       # Reshape matrices to enable einsums over groups.
