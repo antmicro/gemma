@@ -216,11 +216,22 @@ class Attention(nn.Module):
       update_index = end_index % cache_size
 
       # [batch_size, cache_size, num_heads, head_dim]
-      value_proj = cache['v'].at[0, update_index, 0, :].set(value_proj[0, 0, 0])
+      mask = jnp.broadcast_to(
+        jnp.expand_dims(jnp.arange(cache['v'].shape[1]), (0, 2, 3)),
+        cache['v'].shape,
+      )
+      value_proj = jnp.where(mask == update_index, value_proj, cache['v'])
+
       # [batch_size, cache_size, num_heads, head_dim]
-      key_proj = cache['k'].at[0, update_index, 0, :].set(key_proj[0, 0, 0])
+      mask = jnp.broadcast_to(
+        jnp.expand_dims(jnp.arange(cache['k'].shape[1]), (0, 2, 3)),
+        cache['k'].shape,
+      )
+      key_proj = jnp.where(mask == update_index, key_proj, cache['k'])
+
       # [batch_size, cache_size]
-      cache_positions = cache['positions'].at[0, update_index].set(segment_pos[0, 0])
+      mask = jnp.expand_dims(jnp.arange(cache['positions'].shape[1]), 0)
+      cache_positions = jnp.where(mask == update_index, segment_pos, cache['positions'])
 
     if self.use_gqa:
       # Reshape matrices to enable einsums over groups.
