@@ -138,7 +138,7 @@ class SamplerLoop:
 
     return state
 
-  @functools.partial(jax.jit, static_argnames=('self',))
+  # @functools.partial(jax.jit, static_argnames=('self',))
   def _sample_loop(
       self,
       *,
@@ -214,7 +214,7 @@ class SamplerLoop:
       )
       yield state
 
-  @functools.partial(jax.jit, static_argnames=('self',))
+  # @functools.partial(jax.jit, static_argnames=('self',))
   @typechecked
   def _sample_step(
       self,
